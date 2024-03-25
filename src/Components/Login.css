@@ -1,0 +1,120 @@
+/* Overall container */
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Text:wght@300&display=swap');
+.Login {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    width: 100vw;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+  
+  /* Left section with blue background */
+  .login-left {
+    margin-right: 350px; /* Adjust margin for spacing */
+  }
+  
+  .Login-header {
+    padding: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo {
+    font-size: 3em; /* Increase font size for the logo */
+  }
+  
+  /* Right section with white background */
+  .login-right {
+    margin-left: 50px; /* Adjust margin for spacing */
+    background-color: #89cff0;
+    padding: 20px;
+    height: 100%;
+  }
+  
+  /* Login form styles */
+  .SigninHeading {
+    font-size: 2.8em; /* Increase font size for headings */
+    margin-bottom: 10px;
+    font-family: 'Anton', sans-serif;
+  }
+  
+  .SigninPara {
+    line-height: 1.5;
+    margin-bottom: 15px;
+    font-size: 1.2em; /* Increase font size for paragraphs */
+    font-family: 'Big Shoulders Text', cursive;
+  }
+  
+  .inputBox input {
+    padding: 12px; /* Increase padding for inputs */
+    margin-bottom: 15px; /* Increase margin bottom */
+    border: 2px solid #ccc; /* Update border thickness */
+    border-radius: 5px; /* Add border-radius for rounded corners */
+    width: 100%;
+    font-size: 1.1em; /* Adjust font size */
+  }
+  
+  .LoginBtn,
+  .SignUpBtn {
+    padding: 12px 24px; /* Increase padding for buttons */
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px; /* Add border-radius for rounded corners */
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background-color 0.3s ease; /* Add smooth transition */
+    margin-bottom: 10px;
+  }
+  
+  .LoginBtn:hover,
+  .SignUpBtn:hover {
+    background-color: #45a049; /* Darken button color on hover */
+  }
+  
+  /* Panda image styles */
+  .Login-header div:last-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .Login-header div img {
+    width: 150px;
+    height: 150px;
+  }
+  
+  /* Checkbox styles */
+  .LoginSpace {
+    margin-top: auto;
+  }
+  .passwordInput {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .passwordToggleIcon {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    font-size: 1.2em;
+  }
+  
+  .login-right img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover; /* Adjust as necessary */
+  }
+  
+  /* Adjust the margin to better center or fit the image as desired */
+  .login-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
