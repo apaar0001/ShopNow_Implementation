@@ -101,7 +101,7 @@ function AdminHome() {
                 
             </div>
             <div className="AdminSearch">
-            <h1>Admin Home</h1>
+            <h1>Edit Items</h1>
             <div className="search-form">
               <input
                 type="text"
