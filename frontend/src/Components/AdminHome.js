@@ -87,20 +87,20 @@ function AdminHome() {
             setNewQuantity('');
         } catch (error) {
             console.error('Error applying changes:', error);
+            setSearchMessage('Error Appying product Change');
         }
     };
 
     return (
         <>
-          <div className="AdminSearch">
-            <div className="nav">
-              <h1>Admin Settings</h1>
-              <button className="navbutton" onClick={() => navigate('/Login')}>
-                User Login
-              </button>
+            <div className="AdminSearch">
+                <div className='nav'>
+                <h1>Admin Settings</h1>
+                <button className='navbutton' onClick={() => navigate('/Login')}>User Login</button>
+                </div>
+                
             </div>
-          </div>
-          <div className="AdminSearch">
+            <div className="AdminSearch">
             <h1>Admin Home</h1>
             <div className="search-form">
               <input
@@ -138,57 +138,57 @@ function AdminHome() {
                       onChange={(e) => setNewQuantity(e.target.value)}
                     />
                     <button onClick={handleApplyChanges}>Apply Changes</button>
+                    
                   </div>
                 </div>
               </div>
             )}
           </div>
-          <div className="AdminAdd">
-            <h1>Add New Item</h1>
-            <div className="add-item-form">
-              <input
-                type="text"
-                placeholder="Image Url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Item Name"
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Price"
-                value={itemPrice}
-                onChange={(e) => setItemPrice(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Quantity"
-                value={itemQuantity}
-                onChange={(e) => setItemQuantity(e.target.value)}
-              />
-              <select value={itemType} onChange={(e) => setItemType(e.target.value)}>
-                <option value="">Select Category</option>
-                <option value="electronics">Electronics</option>
-                <option value="clothing">Clothing</option>
-                <option value="decorations">Decorations</option>
-              </select>
-              <input
-                type="text"
-                placeholder="What's this?"
-                value={itemWhat}
-                onChange={(e) => setItemWhat(e.target.value)}
-              />
-              <button onClick={handleAddItem}>Add Item</button>
-              {addItemMessage && <div className="add-item-message">{addItemMessage}</div>}
+            <div className="AdminAdd">
+                <h1>Add New Item</h1>
+                <div className="add-item-form">
+                    <input
+                        type="text"
+                        placeholder="Image Url"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Item Name"
+                        value={itemName}
+                        onChange={(e) => setItemName(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Price"
+                        value={itemPrice}
+                        onChange={(e) => setItemPrice(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Quantity"
+                        value={itemQuantity}
+                        onChange={(e) => setItemQuantity(e.target.value)}
+                    />
+                    <select value={itemType} onChange={(e) => setItemType(e.target.value)}>
+                        <option value="">Select Category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="decorations">Decorations</option>
+                    </select>
+                    <input
+                        type="text"
+                        placeholder="What's this?"
+                        value={itemWhat}
+                        onChange={(e) => setItemWhat(e.target.value)}
+                    />
+                    <button onClick={handleAddItem}>Add Item</button>
+                    {addItemMessage && <div className="add-item-message">{addItemMessage}</div>}
+                </div>
             </div>
-          </div>
         </>
-      );
-            }
-      
+    );
+}
 
 export default AdminHome;
