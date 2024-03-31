@@ -26,7 +26,11 @@
   .logo {
     font-size: 3em; /* Increase font size for the logo */
   }
-  
+  /* Login.css */
+
+/* Add styles for invalid password placeholder */
+
+
   /* Right section with white background */
   .login-right {
     margin-left: 50px; /* Adjust margin for spacing */
@@ -118,3 +122,26 @@
     align-items: center;
   }
   
+  .invalid-placeholder::placeholder {
+    color:  #FA8072;
+  }
+
+  /* Adjust admin login button position */
+.admin-login {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.admin-login-btn {
+  padding: 8px 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.admin-login-btn:hover {
+  background-color: #0b7dda;
+}

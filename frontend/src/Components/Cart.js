@@ -1,98 +1,144 @@
-// Cart.js
-
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './Cart.css'; // Import the CSS file for styling
 import { useNavigate } from 'react-router-dom';
 
 function Cart() {
   const navigate = useNavigate();
-  const handleHome = () => {
-    navigate('/Home');
-  }
-  const handleClothing = () => {
-    navigate('/Clothing');
-  }
-  const handleCart = () => {
-    navigate('/Cart');
-  }
-  const handleProfile = () => {
-    navigate('/Profile');
-  }
-  // Sample cart items data with price and images
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Boats Headphone', src: "https://www.maribestonestop.com/image/prohard/image/data/categories/gbaCla4D1619505838.jpg", price: 680, quantity: 1 },
-    { id: 2, name: 'High-Waist Leggings', src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzlJRaeHRve_SDSacDS2Cova_5uKJdNLT6crh-Y9tsHA&s", price: 90, quantity: 2 },
-    { id: 3, name: 'Light', src: "https://i5.walmartimages.com/asr/27261df2-b921-4d0e-9873-039a420ecc0e_1.5c2567a6ea883b6be0c42624cd9cfe69.jpeg", price: 29, quantity: 3 },
-  ]);
 
+  const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
-  // Sample user details
-  const [userDetails, setUserDetails] = useState({
-    name: 'Piyush Narula',
-    phoneNumber: '123-456-7890',
-    address: 'IIITD , Okhla Phase 3, New Delhi, India - 110020',
-  });
+  const fetchCartItems = async () => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) {
+      navigate('/Login'); // Redirect to Login if user is not logged in
+      return;
+    }
 
-  // Calculate total price and remove items with quantity 0
-  useEffect(() => {
-    let total = 0;
-    const updatedCartItems = cartItems.filter((item) => item.quantity > 0);
-    updatedCartItems.forEach((item) => {
-      total += item.price * item.quantity;
-    });
-    setCartItems(updatedCartItems);
-    setTotalPrice(total);
-  }, [cartItems]);
+    try {
+      // Fetch cart items info based on user_email
+      const cartItemsResponse = await axios.post('http://localhost:8000/api/get_cart_items_info', {
+        user_email: userEmail,
+      });
+      const cartItemsData = cartItemsResponse.data.cart_items_info;
+      setCartItems(cartItemsData);
 
-  // Function to handle increasing quantity
-  const handleIncreaseQuantity = (id) => {
-    const updatedCart = cartItems.map((item) =>
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setCartItems(updatedCart);
+      // Fetch product info for each cart item
+      for (const item of cartItemsData) {
+        const productInfoResponse = await axios.post('http://localhost:8000/api/get_product_info', {
+          product_id: item.product_id,
+          category: item.category,
+        });
+        const productInfo = productInfoResponse.data;
+        item.name = productInfo.name;
+        item.url = productInfo.url;
+        item.price = productInfo.price;
+      }
+
+      // Calculate total price
+      let total = 0;
+      cartItemsData.forEach((item) => {
+        total += item.price * item.quantity;
+      });
+      setTotalPrice(total);
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+    }
   };
 
-  // Function to handle decreasing quantity
-  const handleDecreaseQuantity = (id) => {
-    const updatedCart = cartItems.map((item) =>
-      item.id === id && item.quantity > 0 ? { ...item, quantity: item.quantity - 1 } : item
-    );
-    setCartItems(updatedCart);
+  useEffect(() => {
+    fetchCartItems(); // Call fetchCartItems when the component mounts
+  }, []);
+
+  const handleIncreaseQuantity = async (productId, category) => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) {
+      navigate('/Login'); // Redirect to Login if user is not logged in
+      return;
+    }
+
+    try {
+      // Fetch total quantity for the product
+      const totalQuantityResponse = await axios.post('http://localhost:8000/api/get_product_info', {
+        product_id: productId,
+        category: category,
+      });
+      const totalQuantity = totalQuantityResponse.data.quantity;
+
+      // Fetch cart quantity for the product
+      const cartQuantityResponse = await axios.post('http://localhost:8000/api/get_cart_quantity/', {
+        user_email: userEmail,
+        product_id: productId,
+        category: category,
+      });
+      const cartQuantity = cartQuantityResponse.data.quantity;
+
+      if (cartQuantity >= totalQuantity) {
+        alert('Max quantity of items available reached.\nCannot add more to cart.');
+        return;
+      }
+
+      // Call API to increase quantity
+      const response = await axios.post('http://localhost:8000/api/add_to_cart/', {
+        user_email: userEmail,
+        category: category,
+        product_id: productId,
+        quantity: 1,
+      });
+      if (response.data.message) {
+        // Item quantity updated successfully
+        fetchCartItems(); // Refresh cart items after updating quantity
+      }
+    } catch (error) {
+      console.error('Error increasing quantity:', error);
+    }
+  };
+
+  const handleDecreaseQuantity = async (productId, category) => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) {
+      navigate('/Login'); // Redirect to Login if user is not logged in
+      return;
+    }
+
+    try {
+      // Call API to decrease quantity
+      const response = await axios.post('http://localhost:8000/api/delete_one_from_cart/', {
+        user_email: userEmail,
+        product_id: productId,
+        category: category,
+      });
+      if (response.data.message) {
+        // Item quantity updated successfully
+        fetchCartItems(); // Refresh cart items after updating quantity
+      }
+    } catch (error) {
+      console.error('Error decreasing quantity:', error);
+    }
   };
 
   return (
     <div className="Cart">
       <div className="back-to-home">
-        <button onClick={handleHome}>Back to Home</button>
-      </div>
-      <div className="user-details">
-        <h2 className='heading'>User Details</h2>
-        <div className="user-info">
-          <div>
-            <strong>Name:</strong> {userDetails.name}
-          </div>
-          <div>
-            <strong>Phone Number:</strong> {userDetails.phoneNumber}
-          </div>
-          <div>
-            <strong>Address:</strong> {userDetails.address}
-          </div>
-        </div>
+        <button onClick={() => navigate('/Home')}>Back to Home</button>
       </div>
       <h1 className="cart-title">Shopping Cart</h1>
+      <div className="user-details">
+        {/* Render user details here if needed */}
+      </div>
       <div className="cart-items">
         {cartItems.map((item) => (
-          <div className="cart-item" key={item.id}>
-            <img src={item.src} alt={item.name} />
+          <div className="cart-item" key={item.product_id}>
+            <img src={item.url} alt={item.name} />
             <div className="item-details">
               <div className="item-name">{item.name}</div>
               <div className="price-quantity">
                 <div className="price">Price: ${item.price}</div>
                 <div className="quantity-controls">
-                  <button onClick={() => handleDecreaseQuantity(item.id)}>-</button>
+                  <button onClick={() => handleDecreaseQuantity(item.product_id, item.category)}>-</button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => handleIncreaseQuantity(item.id)}>+</button>
+                  <button onClick={() => handleIncreaseQuantity(item.product_id, item.category)}>+</button>
                 </div>
               </div>
             </div>
@@ -114,5 +160,4 @@ function Cart() {
 }
 
 export default Cart;
-
 

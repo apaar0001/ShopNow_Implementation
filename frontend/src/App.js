@@ -6,6 +6,8 @@ import SignUp from './Components/Signup';
 import Home from './Components/Home';
 import Electronics from './Components/Electronics';
 import Cart from './Components/Cart';
+import AdminLogin from './Components/AdminLogin';
+import AdminHome from './Components/AdminHome';
 import {BrowserRouter,Routes, Route, useNavigate} from 'react-router-dom'
 
 
@@ -21,6 +23,8 @@ function App() {
     <Route path="/Clothing" element={<Clothing/>}/>
     <Route path="/Cart" element={<Cart/>}/>
     <Route path="/Profile" element={<Profile/>}/>
+    <Route path="/AdminLogin" element={<AdminLogin/>}/>
+    <Route path="/AdminHome" element={<AdminHome/>}/>
     </Routes>
     </BrowserRouter>
     

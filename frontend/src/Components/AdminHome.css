@@ -1,0 +1,241 @@
+.AdminSearch {
+    margin: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+  }
+  
+  h1 {
+    margin-bottom: 20px;
+  }
+  
+  .search-form {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .search-form input[type='text'],
+  .search-form select {
+    margin-right: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .search-form button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .product-details {
+    display: flex;
+    margin-top: 20px;
+  }
+  
+  .product-details img {
+    width: 200px;
+    height: auto;
+    margin-right: 20px;
+  }
+  
+  .details h3 {
+    margin-bottom: 10px;
+  }
+  
+  .details p {
+    margin-bottom: 8px;
+  }
+  
+  .change-form input[type='text'] {
+    margin-right: 10px;
+    padding: 8px;
+    width: 120px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .change-form button {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+
+  .AdminSearch {
+    margin: 20px;
+  }
+  
+  .search-form {
+    margin-bottom: 20px;
+  }
+  
+  .product-details {
+    display: flex;
+    margin-bottom: 20px;
+  }
+  
+  .product-details img {
+    width: 150px;
+    height: 150px;
+    margin-right: 20px;
+  }
+  
+  .details {
+    flex-grow: 1;
+  }
+  
+  .change-form {
+    margin-top: 10px;
+  }
+  
+  .add-item-form {
+    margin-top: 20px;
+  }
+  
+  .add-item-form .form {
+    margin-top: 10px;
+  }
+  
+  .add-item-form .form input {
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .add-item-form .form button {
+    margin-top: 10px;
+  }
+  .AdminSearch {
+    margin: 20px;
+  }
+  
+  .search-form {
+    margin-bottom: 20px;
+  }
+  
+  .product-details {
+    margin-top: 20px;
+  }
+  
+  .change-form {
+    margin-top: 10px;
+  }
+  
+  .more-details {
+    margin-top: 20px;
+  }
+  
+  .details-form {
+    margin-top: 10px;
+  }
+    
+  .AdminAdd {
+    margin: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+.AdminAdd h1 {
+    margin-bottom: 20px;
+}
+
+.add-item-form {
+    margin-top: 20px;
+}
+
+.add-item-form input[type='text'],
+.add-item-form select {
+    margin-bottom: 10px;
+    padding: 8px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.add-item-form button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Additional styling for better alignment */
+.add-item-form .form {
+    margin-top: 10px;
+}
+
+.add-item-form .form input {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.add-item-form .form button {
+    margin-top: 10px;
+}
+/* Footer Styles */
+.Home-footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    color: #fff;
+  }
+
+
+  /* AdminHome.css */
+
+.AdminSearch {
+    margin: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+.search-message {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #ffc107;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* AdminHome.css */
+
+.add-item-message {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #28a745;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 16px;
+}
+.nav{
+    display: flex;
+    justify-content:space-between;
+}
+
+.navbutton{
+    padding:5px;
+    background-color: #0b7dda;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

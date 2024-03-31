@@ -1,0 +1,87 @@
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Text:wght@300&display=swap');
+
+/* Reset Default Styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Overall Container */
+.AdminLogin {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+/* Left Section Styles */
+.admin-login-left {
+  margin-right: 350px;
+}
+
+/* Header Styles */
+.SigninHeading {
+  font-size: 2.8em;
+  margin-bottom: 10px;
+  font-family: 'Anton', sans-serif;
+}
+
+/* Form and Input Styles */
+.inputBox input {
+  padding: 15px; /* Increased padding for larger input */
+  padding-right:105px ;
+  margin-bottom: 15px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  font-size: 1.1em;
+}
+
+/* Button Styles */
+.LoginBtn {
+  padding: 12px 24px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.LoginBtn:hover {
+  background-color: #45a049;
+}
+
+/* Right Section Styles */
+.admin-login-right {
+  margin-left: 50px;
+  background-color: #89cff0;
+  padding: 20px;
+  height: 100%;
+}
+
+/* Image Styles */
+.Login-header div img {
+  width: 150px;
+  height: 150px;
+}
+
+/* Password Toggle Icon */
+.passwordToggleIcon {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+/* Placeholder for Invalid Input */
+.invalid-placeholder::placeholder {
+  color: #FA8072; /* Light Coral color */
+}

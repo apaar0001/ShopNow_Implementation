@@ -1,63 +1,188 @@
-
-import React, { useState } from 'react';
-import './Electronics.css'; // Import your CSS styles
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { FaHeart, FaUser, FaShoppingCart, FaSearch, FaMinus, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import './Electronics.css';
 
 function Electronics() {
   const navigate = useNavigate();
+
   const handleHome = () => {
     navigate('/Home');
-  }
-  const handleClothing = () => {
-    navigate('/Clothing');
-  }
+  };
+
   const handleCart = () => {
     navigate('/Cart');
-  }
+  };
+
   const handleProfile = () => {
     navigate('/Profile');
-  }
+  };
 
-  // State to track cart items and quantity
+  const [products, setProducts] = useState({ electronics: [] });
   const [cartItems, setCartItems] = useState({});
 
-  const addToCart = (productName) => {
-    setCartItems((prevItems) => ({
-      ...prevItems,
-      [productName]: (prevItems[productName] || 0) + 1,
-    }));
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/products/');
+        setProducts({ electronics: response.data.electronics });
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const getTotalQuantity = async(productId,category) => {
+    try{
+      const response = await axios.post('http://localhost:8000/api/get_product_info', {
+        product_id: productId,
+        category: category,
+      });
+      return response.data.quantity;
+    }catch(error){
+      console.error('Error fetching total quantity:', error);
+      return 0;
+    }
+
+  }
+
+  useEffect(() => {
+    const fetchCartQuantities = async () => {
+      const userEmail = localStorage.getItem('user_email');
+      if (!userEmail) return;
+
+      const updatedCartItems = {};
+      updatedCartItems['electronics'] = {};
+      for (const product of products.electronics) {
+        const quantity = await fetchCartItemQuantities(product.id, 'electronics');
+        updatedCartItems['electronics'][product.id] = quantity;
+      }
+      setCartItems(updatedCartItems);
+    };
+
+    fetchCartQuantities();
+  }, [products]);
+
+  const fetchCartItemQuantities = async (productId, category) => {
+    try {
+      const userEmail = localStorage.getItem('user_email');
+      const response = await axios.post('http://localhost:8000/api/get_cart_quantity/', {
+        user_email: userEmail,
+        product_id: productId,
+        category: category,
+        
+      });
+      return response.data.quantity;
+    } catch (error) {
+      console.error('Error fetching cart item quantity:', error);
+      return 0;
+    }
   };
 
-  const increaseQuantity = (productName) => {
-    setCartItems((prevItems) => ({
-      ...prevItems,
-      [productName]: prevItems[productName] + 1,
-    }));
+  const handleAddToCart = async (productId) => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) return;
+  
+    try {
+      await axios.post('http://localhost:8000/api/add_to_cart/', {
+        user_email: userEmail,
+        category: 'electronics',
+        product_id: productId,
+        quantity: 1, // Assuming default quantity is 1 for now
+      });
+      const quantity = await fetchCartItemQuantities(productId, 'electronics');
+      setCartItems((prevItems) => ({
+        ...prevItems,
+        electronics: { ...prevItems.electronics, [productId]: quantity },
+      }));
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+    }
+  };
+  
+  const increaseQuantity = async (productId, category) => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) return;
+  
+    try {
+      const currentQuantity = await fetchCartItemQuantities(productId, category);
+      const maxQuantity = await getTotalQuantity(productId, category);
+  
+      if (currentQuantity === maxQuantity) {
+        alert('Max quantity of items available reached.\nCannot add more to cart.');
+        return;
+      }
+  
+      await axios.post('http://localhost:8000/api/add_to_cart/', {
+        user_email: userEmail,
+        category: category,
+        product_id: productId,
+        quantity: 1, // Increase quantity by 1
+      });
+      const quantity = await fetchCartItemQuantities(productId, category);
+      setCartItems((prevItems) => ({
+        ...prevItems,
+        [category]: { ...prevItems[category], [productId]: quantity },
+      }));
+    } catch (error) {
+      console.error('Error increasing quantity:', error);
+    }
   };
 
-  const decreaseQuantity = (productName) => {
-    setCartItems((prevItems) => ({
-      ...prevItems,
-      [productName]: Math.max(0, prevItems[productName] - 1),
-    }));
+  const decreaseQuantity = async (productId, category) => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) return;
+
+    try {
+      await axios.post('http://localhost:8000/api/delete_one_from_cart/', {
+        user_email: userEmail,
+        product_id: productId,
+        category: category,
+      });
+      const quantity = await fetchCartItemQuantities(productId, category);
+      setCartItems((prevItems) => ({
+        ...prevItems,
+        [category]: { ...prevItems[category], [productId]: quantity },
+      }));
+    } catch (error) {
+      console.error('Error decreasing quantity:', error);
+    }
   };
 
-  // Helper function to render the add to cart or quantity buttons
-  const renderCartButton = (productName) => {
-    const count = cartItems[productName] || 0;
+  const renderCartButton = (productId) => {
+    const count = cartItems['electronics'] && cartItems['electronics'][productId] || 0;
     return count > 0 ? (
-      <div className="quantity-controls" style={{marginLeft:"40px"}}>
-        <button  onClick={() => decreaseQuantity(productName)}><FaMinus /></button>
-        <span >{count}</span>
-        <button  onClick={() => increaseQuantity(productName)}><FaPlus /></button>
+      <div className="quantity-controls">
+        <button onClick={() => decreaseQuantity(productId, 'electronics')}><FaMinus /></button>
+        <span>{count}</span>
+        <button onClick={() => increaseQuantity(productId, 'electronics')}><FaPlus /></button>
       </div>
     ) : (
-      <button style={{marginLeft:"40px"}}  className="add-to-cart-button" onClick={() => addToCart(productName)}>
+      <button className="add-to-cart-button" onClick={() => handleAddToCart(productId)}>
         Add to Cart <FaShoppingCart />
       </button>
     );
   };
+
+  const renderProducts = () => (
+    <div className="product-grid">
+      {products.electronics.map(product => (
+        <div className="product-card" key={product.name}>
+          <img src={product.url} alt={product.name} />
+          <h3>{product.name}</h3>
+          <div style={{ display: 'flex', marginTop: '10px' }}>
+            <p>${product.price}</p>
+            <div style={{ marginLeft: 'auto' }}>
+              {renderCartButton(product.id)}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="Electronics">
@@ -79,87 +204,13 @@ function Electronics() {
           <li><div onClick={handleHome}>Home</div></li>
           <li><div>Phones</div></li>
           <li><div>Laptops</div></li>
-          <li><div>Accessaries</div></li>
-
-
+          <li><div>Accessories</div></li>
         </ul>
       </nav>
       <main className="Electronics-main">
-        {/* Phones Section */}
         <section className="Electronics-section">
-          <h2>Phones</h2>
-          <div className="product-grid">
-            <div className="product-card">
-              <img src="https://media.extra.com/s/aurora/100322230_800/Apple-iPhone-14-Pro-Max%2C-5G%2C-128GB%2C-Space-Black?locale=en-GB,en-*,*" alt="Iphone 14 Pro" />
-              <h3>Iphone 14 Pro</h3>
-              <div style={{display:'flex',marginTop:"10px"}}>
-              <p>$1500</p>
-              {renderCartButton('Iphone 14 Pro')}
-              </div>
-            </div>
-            <div className="product-card">
-              <img src="https://tse3.mm.bing.net/th?id=OIP.eWITfWaKP4HWqXacMDJTtQAAAA&pid=Api" alt="Samsung S23 Ultra" />
-
-              <h3>Samsung S23 Ultra</h3>
-              <div style={{display:'flex',marginTop:"10px"}}>
-              <p>$1399</p>
-              {renderCartButton('Samsung S23 Ultra')}
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* Laptops Section */}
-        <section className="Electronics-section">
-          <h2>Laptops</h2>
-          <div className="product-grid">
-            <div className="product-card">
-              <img src="https://i5.walmartimages.com/asr/0cb7a843-6f55-4c9a-b71d-fa3408d68464_1.10fc412091e6617966cef69fc422f885.jpeg" alt="Lenovo ThinkPad" />
-              <h3>Lenovo ThinkPad</h3>
-              <div style={{display:'flex',marginTop:"10px"}}>
-              <p>$999</p>
-              {renderCartButton('Lenovo ThinkPad')}
-              </div>
-            </div>
-            <div className="product-card">
-              <img src="https://cdn.arstechnica.net/wp-content/uploads/2015/02/MG_4188.jpg" alt="Dell Vostro" />
-              <h3>Dell Vostro</h3>
-              <div style={{display:'flex',marginTop:"10px"}}>
-              <p>$789</p>
-              {renderCartButton('Dell Vostro')}
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* Accessories Section */}
-        <section className="Electronics-section">
-          <h2>Accessories</h2>
-          <div className="product-grid">
-            <div className="product-card">
-              <img src="https://i.pinimg.com/originals/82/b3/3c/82b33c2c313795bee9f160ddcd4b3397.jpg" alt="Electronics Carry Bag" />
-
-              <h3>Electronics Carry Bag</h3>
-              <div style={{display:'flex',marginTop:"10px"}}>
-              <p>$50</p>
-              {renderCartButton('Electronics Carry Bag')}
-              </div>
-            </div>
-            <div className="product-card">
-              <img src="https://siri-cdn.appadvice.com/wp-content/appadvice-v2-media/2017/12/best-technology-products_338b6c9cbbf43e07ee7ad6e58c296a1e-xl.jpg" alt="JBL Speaker" />
-              <h3>JBL Speaker</h3>
-              <div style={{display:'flex',marginTop:"10px"}}>
-              <p>$899</p>
-              {renderCartButton('JBL Speaker')}
-              </div>
-            </div>
-            <div className="product-card">
-              <img src="https://www.maribestonestop.com/image/prohard/image/data/categories/gbaCla4D1619505838.jpg" alt="Boats HeadPhone" />
-              <h3>Boats HeadPhone</h3>
-              <div style={{display:'flex',marginTop:"10px"}}>
-              <p>$680</p>
-              {renderCartButton('Boats HeadPhone')}
-              </div>
-            </div>
-          </div>
+          <h2>Featured Electronics</h2>
+          {renderProducts()}
         </section>
       </main>
       <footer className="Electronics-footer">
