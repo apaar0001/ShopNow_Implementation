@@ -21,8 +21,7 @@ function Cart() {
       const cartItemsResponse = await axios.post('http://localhost:8000/api/get_cart_items_info', {
         user_email: userEmail,
       });
-      const cartItemsData = cartItemsResponse.data.cart_items_info;
-      setCartItems(cartItemsData);
+      let cartItemsData = cartItemsResponse.data.cart_items_info;
 
       // Fetch product info for each cart item
       for (const item of cartItemsData) {
@@ -34,8 +33,22 @@ function Cart() {
         item.name = productInfo.name;
         item.url = productInfo.url;
         item.price = productInfo.price;
+        
+        // Check if cart item quantity exceeds total quantity available
+        if (item.quantity > productInfo.quantity) {
+          item.quantity = productInfo.quantity; // Set item quantity to maximum available
+          await axios.post('http://localhost:8000/api/update_cart_item_quantity/', {
+            user_email: userEmail,
+            product_id: item.product_id,
+            category: item.category,
+            quantity: productInfo.quantity,
+          });
+        }
       }
 
+      // Refetch cart items after updating quantities
+      setCartItems(cartItemsData);
+      
       // Calculate total price
       let total = 0;
       cartItemsData.forEach((item) => {
@@ -72,14 +85,20 @@ function Cart() {
         product_id: productId,
         category: category,
       });
-      const cartQuantity = cartQuantityResponse.data.quantity;
-
+      let cartQuantity = cartQuantityResponse.data.quantity;
+      fetchCartItems();
+      // Check if cart quantity is greater than total quantity
       if (cartQuantity >= totalQuantity) {
         alert('Max quantity of items available reached.\nCannot add more to cart.');
         return;
       }
 
-      // Call API to increase quantity
+      // Check if cart quantity + 1 is greater than total quantity
+      if (cartQuantity + 1 > totalQuantity) {
+        alert('Max quantity of items available reached.\nQuantity updated to maximum available.');
+      }
+
+      cartQuantity += 1;
       const response = await axios.post('http://localhost:8000/api/add_to_cart/', {
         user_email: userEmail,
         category: category,
@@ -151,7 +170,9 @@ function Cart() {
           <div className="total-items">Total Items: {cartItems.length}</div>
           <div className="total-price">Total Price: ${totalPrice}</div>
           <div className="payment-button">
-            <button>Proceed to Payment</button>
+            <button disabled={totalPrice === 0} onClick={() => navigate('/Payment')}>
+              BUY NOW
+            </button>
           </div>
         </div>
       </div>
@@ -160,4 +181,3 @@ function Cart() {
 }
 
 export default Cart;
-

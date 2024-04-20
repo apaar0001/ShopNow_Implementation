@@ -30,6 +30,9 @@ from accounts.views import add_admin
 from accounts.views import get_admin_id
 from accounts.views import change_product_quantity
 from accounts.views import change_product_price
+from accounts.views import remove_product_quantity
+from accounts.views import rollback_transaction
+from accounts.views import commit_transaction
 
 urlpatterns = [
     path('auth/', include('djoser.urls')),
@@ -48,6 +51,9 @@ urlpatterns = [
     path('auth/get_admin_id',get_admin_id,name='get_admin_id'),
     path('api/change_product_quantity',change_product_quantity,name='change_product_quantity'),
     path('api/change_product_price',change_product_price,name='change_product_price'),
+    path('api/remove_product_quantity',remove_product_quantity,name='remove_product_quantity'),
+    path('api/rollback_transaction',rollback_transaction,name='rollback_transaction'),
+    path('api/commit_transaction',commit_transaction,name='commit_transaction'),
     
 ]
 

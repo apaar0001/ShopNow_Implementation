@@ -123,72 +123,87 @@ def get_csrf_token(request):
     return JsonResponse(response_data)
 
 
+from django.db import transaction
+
 @csrf_exempt
 def delete_from_cart(request):
     if request.method == 'POST':
         try:
-            # Parse the JSON request body
-            data = json.loads(request.body)
+            with transaction.atomic():
+                # Parse the JSON request body
+                data = json.loads(request.body)
 
-            # Extract data from the parsed JSON
-            user_email = data.get('user_email')
-            product_id = int(data.get('product_id'))  # Convert to integer
+                # Extract data from the parsed JSON
+                user_email = data.get('user_email')
+                product_id = int(data.get('product_id'))  # Convert to integer
+                category = data.get('category')
 
-            # Check for null or empty values
-            if None in [user_email] or '' in [user_email]:
-                return JsonResponse({'error': 'Missing required fields.'}, status=400)
+                # Check for null or empty values
+                if None in [user_email] or '' in [user_email]:
+                    return JsonResponse({'error': 'Missing required fields.'}, status=400)
 
-            # Delete the item from the cart based on user email and product ID
-            deleted_items_count = Cart.objects.filter(user_email=user_email, product_id=product_id).delete()
+                # Delete the item from the cart based on user email and product ID
+                deleted_items_count = Cart.objects.filter(user_email=user_email, product_id=product_id,category=category).delete()
 
-            if deleted_items_count[0] > 0:
-                return JsonResponse({'message': 'Item deleted from cart successfully.'}, status=200)
-            else:
-                return JsonResponse({'error': 'Item not found in cart.'}, status=404)
+                if deleted_items_count[0] > 0:
+                    return JsonResponse({'message': 'Item deleted from cart successfully.'}, status=200)
+                else:
+                    return JsonResponse({'error': 'Item not found in cart.'}, status=404)
         except Exception as e:
+            transaction.rollback()
             return JsonResponse({'error': str(e)}, status=400)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
 
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Cart  # Import the Cart model
+from django.db import transaction
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Cart  # Import the Cart model
+from django.db import transaction
 
 @csrf_exempt
 def delete_one_from_cart(request):
     if request.method == 'POST':
         try:
-            # Parse the JSON request body
-            data = json.loads(request.body)
+            with transaction.atomic():
+                # Parse the JSON request body
+                data = json.loads(request.body)
 
-            # Extract data from the parsed JSON
-            user_email = data.get('user_email')
-            product_id = int(data.get('product_id'))  # Convert to integer
-            category = data.get('category')
+                # Extract data from the parsed JSON
+                user_email = data.get('user_email')
+                product_id = int(data.get('product_id'))  # Convert to integer
+                category = data.get('category')
 
-            # Check for null or empty values
-            if None in [user_email] or '' in [user_email]:
-                return JsonResponse({'error': 'Missing required fields.'}, status=400)
+                # Check for null or empty values
+                if None in [user_email] or '' in [user_email]:
+                    return JsonResponse({'error': 'Missing required fields.'}, status=400)
 
-            # Find the item in the cart based on user email and product ID
-            try:
-                cart_item = Cart.objects.get(user_email=user_email, product_id=product_id,category=category)
-            except Cart.DoesNotExist:
-                return JsonResponse({'error': 'Item not found in cart.'}, status=404)
+                # Find the item in the cart based on user email and product ID
+                try:
+                    cart_item = Cart.objects.get(user_email=user_email, product_id=product_id,category=category)
+                except Cart.DoesNotExist:
+                    return JsonResponse({'error': 'Item not found in cart.'}, status=404)
 
-            # Decrease the quantity by 1 and delete if quantity becomes 0
-            if cart_item.quantity > 1:
-                cart_item.quantity -= 1
-                cart_item.save()
-            else:
-                cart_item.delete()
+                # Decrease the quantity by 1 and delete if quantity becomes 0
+                if cart_item.quantity > 1:
+                    cart_item.quantity -= 1
+                    cart_item.save()
+                else:
+                    cart_item.delete()
 
-            return JsonResponse({'message': 'Item quantity updated in cart.'}, status=200)
+                return JsonResponse({'message': 'Item quantity updated in cart.'}, status=200)
         except Exception as e:
+            transaction.set_rollback(True)
             return JsonResponse({'error': str(e)}, status=400)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
 
 
 @csrf_exempt
@@ -248,7 +263,10 @@ def get_cart_items_info(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .models import Electronics, Clothing, Decorations
+from django.db import transaction
+
 @csrf_exempt
 def get_product_info(request):
     if request.method == 'POST':
@@ -256,7 +274,6 @@ def get_product_info(request):
             data = json.loads(request.body)
             product_id = data.get('product_id')
             category = data.get('category')
-            
 
             if not product_id or not category:
                 return JsonResponse({'error': 'Missing required parameters.'}, status=400)
@@ -264,26 +281,29 @@ def get_product_info(request):
             product_info = {}
 
             if category == 'electronics':
-                product = Electronics.objects.filter(id=product_id).first()
-                if product:
-                    product_info['name'] = product.name
-                    product_info['url'] = product.url
-                    product_info['quantity'] = product.quantity
-                    product_info['price'] = product.price
+                with transaction.atomic():
+                    product = Electronics.objects.select_for_update().filter(id=product_id).first()
+                    if product:
+                        product_info['name'] = product.name
+                        product_info['url'] = product.url
+                        product_info['quantity'] = product.quantity
+                        product_info['price'] = product.price
             elif category == 'clothing':
-                product = Clothing.objects.filter(id=product_id).first()
-                if product:
-                    product_info['name'] = product.name
-                    product_info['url'] = product.url
-                    product_info['quantity'] = product.quantity
-                    product_info['price'] = product.price
+                with transaction.atomic():
+                    product = Clothing.objects.select_for_update().filter(id=product_id).first()
+                    if product:
+                        product_info['name'] = product.name
+                        product_info['url'] = product.url
+                        product_info['quantity'] = product.quantity
+                        product_info['price'] = product.price
             elif category == 'decorations':
-                product = Decorations.objects.filter(id=product_id).first()
-                if product:
-                    product_info['name'] = product.name
-                    product_info['url'] = product.url
-                    product_info['quantity'] = product.quantity
-                    product_info['price'] = product.price
+                with transaction.atomic():
+                    product = Decorations.objects.select_for_update().filter(id=product_id).first()
+                    if product:
+                        product_info['name'] = product.name
+                        product_info['url'] = product.url
+                        product_info['quantity'] = product.quantity
+                        product_info['price'] = product.price
             else:
                 return JsonResponse({'error': 'Invalid category.'}, status=400)
 
@@ -293,85 +313,89 @@ def get_product_info(request):
                 return JsonResponse({'error': 'Product not found.'}, status=404)
 
         except Exception as e:
+            transaction.rollback()
             return JsonResponse({'error': str(e)}, status=400)
     else:
-        return JsonResponse({'error': 'Only GET requests are allowed.'}, status=405)
+        return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Electronics, Clothing, Decorations
 import json
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Electronics, Clothing, Decorations  # Import the models
+from django.db import transaction
+
 @csrf_exempt
 def add_item(request):
     if request.method == 'POST':
         try:
-            # Parse the JSON request body
-            data = json.loads(request.body)
+            with transaction.atomic():
+                # Parse the JSON request body
+                data = json.loads(request.body)
 
-            # Extract data from the parsed JSON
-            url = data.get('url')
-            name = data.get('name')
-            price = data.get('price')
-            quantity = data.get('quantity')
-            item_type = data.get('item_type')  # Assuming this field specifies Electronics/Clothing/Decorations
-            what=data.get('what')
+                # Extract data from the parsed JSON
+                url = data.get('url')
+                name = data.get('name')
+                price = data.get('price')
+                quantity = data.get('quantity')
+                item_type = data.get('item_type')  # Assuming this field specifies Electronics/Clothing/Decorations
+                what = data.get('what')
 
-            # Check for null or empty values
-            if None in [url, name, price, quantity, item_type] or '' in [url, name, item_type]:
-                return JsonResponse({'error': 'Missing required fields.'}, status=400)
+                # Check for null or empty values
+                if None in [url, name, price, quantity, item_type] or '' in [url, name, item_type]:
+                    return JsonResponse({'error': 'Missing required fields.'}, status=400)
 
-            # Ensure quantity and price are valid
-            quantity = int(quantity) if quantity.isdigit() else None
-            price = float(price) if isinstance(price, (int, float, str)) else None
+                # Ensure quantity and price are valid
+                quantity = int(quantity) if quantity.isdigit() else None
+                price = float(price) if isinstance(price, (int, float, str)) else None
 
-            if quantity is None or price is None or quantity <= 0 or price <= 0:
-                return JsonResponse({'error': 'Invalid quantity or price.'}, status=400)
+                if quantity is None or price is None or quantity <= 0 or price <= 0:
+                    return JsonResponse({'error': 'Invalid quantity or price.'}, status=400)
 
-            # Determine the model class based on item_type
-            if item_type == 'electronics':
-                model_class = Electronics
-                item = model_class.objects.create(
-                url=url,
-                name=name,
-                price=price,
-                quantity=quantity,
-                what = what
-                )
+                # Determine the model class based on item_type
+                if item_type == 'electronics':
+                    model_class = Electronics
+                    item = model_class.objects.create(
+                        url=url,
+                        name=name,
+                        price=price,
+                        quantity=quantity,
+                        what=what
+                    )
+                elif item_type == 'clothing':
+                    model_class = Clothing
+                    item = model_class.objects.create(
+                        url=url,
+                        name=name,
+                        price=price,
+                        quantity=quantity,
+                        whom=what
+                    )
+                elif item_type == 'decorations':
+                    model_class = Decorations
+                    item = model_class.objects.create(
+                        url=url,
+                        name=name,
+                        price=price,
+                        quantity=quantity,
+                        what=what
+                    )
+                else:
+                    return JsonResponse({'error': 'Invalid item type.'}, status=400)
+
                 item.save()
 
-            elif item_type == 'clothing':
-                model_class = Clothing
-                item = model_class.objects.create(
-                url=url,
-                name=name,
-                price=price,
-                quantity=quantity,
-                whom = what
-                )
-                item.save()
-            elif item_type == 'decorations':
-                model_class = Decorations
-                
-                item = model_class.objects.create(
-                url=url,
-                name=name,
-                price=price,
-                quantity=quantity,
-                what = what
-            )
-                item.save()
-            else:
-                return JsonResponse({'error': 'Invalid item type.'}, status=400)
-
-            # Save the item to the database
-            
-
-            return JsonResponse({'message': f'Item added to {item_type} successfully.'}, status=201)
+                return JsonResponse({'message': f'Item added to {item_type} successfully.'}, status=201)
         except Exception as e:
+            transaction.set_rollback(True)
             return JsonResponse({'error': str(e)}, status=400)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
     
 from .models import Admin
 
@@ -480,9 +504,7 @@ def change_product_quantity(request):
                 return JsonResponse({'error': 'Missing required fields.'}, status=400)
 
             # Ensure new_quantity is a valid integer
-            new_quantity = int(new_quantity) if new_quantity.isdigit() else None
-
-            if new_quantity is None or new_quantity < 0:
+            if not str(new_quantity).isdigit() or int(new_quantity) < 0:
                 return JsonResponse({'error': 'Invalid new quantity.'}, status=400)
 
             # Determine the model class based on the category
@@ -495,23 +517,28 @@ def change_product_quantity(request):
             else:
                 return JsonResponse({'error': 'Invalid category.'}, status=400)
 
-            # Find the product based on product_id and category
-            product = model_class.objects.filter(id=product_id).first()
+            with transaction.atomic():
+                # Find the product based on product_id and category
+                product = model_class.objects.select_for_update().filter(id=product_id).first()
 
-            if product:
-                if new_quantity == 0:
-                    # Remove the product from the database
-                    product.delete()
-                    return JsonResponse({'message': 'Product removed successfully.'}, status=200)
+                if product:
+                    if int(new_quantity) == 0:
+                        # Remove the product from the database
+                        product.delete()
+                        
+                        return JsonResponse({'message': 'Product removed successfully.'}, status=200)
+                    else:
+                        # Update the quantity of the product
+                        product.quantity = new_quantity
+                        product.save()
+                        
+                        return JsonResponse({'message': 'Product quantity updated successfully.'}, status=200)
                 else:
-                    # Update the quantity of the product
-                    product.quantity = new_quantity
-                    product.save()
-                    return JsonResponse({'message': 'Product quantity updated successfully.'}, status=200)
-            else:
-                return JsonResponse({'error': 'Product not found.'}, status=404)
+                    return JsonResponse({'error': 'Product not found.'}, status=404)
 
         except Exception as e:
+            # Rollback the transaction in case of an exception
+            transaction.rollback()
             return JsonResponse({'error': str(e)}, status=400)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
@@ -521,6 +548,12 @@ def change_product_quantity(request):
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Electronics, Clothing, Decorations
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Electronics, Clothing, Decorations
+from django.db import transaction
 
 @csrf_exempt
 def change_product_price(request):
@@ -554,18 +587,145 @@ def change_product_price(request):
             else:
                 return JsonResponse({'error': 'Invalid category.'}, status=400)
 
-            # Find the product based on product_id and category
-            product = model_class.objects.filter(id=product_id).first()
+            with transaction.atomic():
+                
+                product = model_class.objects.select_for_update().filter(id=product_id).first()
 
-            if product:
-                # Update the price of the product
-                product.price = new_price
-                product.save()
-                return JsonResponse({'message': 'Product price updated successfully.'}, status=200)
-            else:
-                return JsonResponse({'error': 'Product not found.'}, status=404)
+                if product:
+                   
+                    product.price = new_price
+                    product.save()
+                    
+                    return JsonResponse({'message': 'Product price updated successfully.'}, status=200)
+                else:
+                    return JsonResponse({'error': 'Product not found.'}, status=404)
+
+        except Exception as e:
+            # Rollback the transaction in case of an exception
+            transaction.rollback()
+            return JsonResponse({'error': str(e)}, status=400)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
+
+from django.db import transaction
+from django.http import JsonResponse
+
+from django.db import transaction
+from django.http import JsonResponse
+from .models import Cart, Purchases
+
+from django.db import transaction
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Cart, Purchases, Electronics, Clothing, Decorations
+import json
+from django.db import transaction
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Cart, Purchases, Electronics, Clothing, Decorations
+import json
+
+@csrf_exempt
+def remove_product_quantity(request):
+    if request.method == 'POST':
+        try:
+            # Parse the JSON request body
+            data = json.loads(request.body)
+            user_email = data.get('user_email')
+            cart_items = Cart.objects.filter(user_email=user_email)
+
+            with transaction.atomic():
+                for cart_item in cart_items:
+                    product_id = cart_item.product_id
+                    category = cart_item.category
+                    quantity = cart_item.quantity
+
+                    # Check for null or empty values
+                    if None in [product_id, category, quantity] or '' in [product_id, category, quantity]:
+                        return JsonResponse({'error': 'Missing required fields.'}, status=400)
+
+                    quantity = int(quantity)
+
+                    if quantity <= 0:
+                        return JsonResponse({'error': 'Invalid quantity.'}, status=400)
+
+                    if category == 'electronics':
+                        model_class = Electronics
+                    elif category == 'clothing':
+                        model_class = Clothing
+                    elif category == 'decorations':
+                        model_class = Decorations
+                    else:
+                        return JsonResponse({'error': 'Invalid category.'}, status=400)
+
+                    product = model_class.objects.select_for_update().filter(id=product_id).first()
+
+                    if product:
+                        if product.quantity >= quantity:
+                            product.quantity -= quantity
+                            product.save()
+                            if product.quantity == 0:
+                                product.delete()
+
+                            # Add purchase details to Purchases table
+                            purchase = Purchases.objects.create(
+                                user_email=user_email,
+                                product_id=product_id,
+                                category=category,
+                                quantity=quantity
+                            )
+                            cart_item.delete()
+                        else:
+                            return JsonResponse({'error': 'Not enough quantity available for product with ID {} in category {}.'.format(product_id, category)}, status=400)
+                    else:
+                        return JsonResponse({'error': 'Product with ID {} in category {} not found.'.format(product_id, category)}, status=404)
+
+            # If everything goes well, commit the transaction
+            transaction.commit()
+            return JsonResponse({'message': 'Transaction completed successfully.'}, status=200)
+
+        except Exception as e:
+            # If there's an error, rollback the transaction
+            transaction.rollback()
+            return JsonResponse({'error': str(e)}, status=400)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+
+
+@csrf_exempt
+def rollback_transaction(request):
+    try:
+        # Rollback the transaction
+        transaction.rollback()
+        return JsonResponse({'message': 'Transaction rolled back successfully.'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def commit_transaction(request):
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Execute remove_product_quantity function within the same transaction
+                remove_product_quantity_response = remove_product_quantity(request)
+                remove_product_quantity_response_data = json.loads(remove_product_quantity_response.content)
+
+                # If remove_product_quantity was successful, commit the transaction
+                if remove_product_quantity_response.status_code == 200:
+                    transaction.commit()
+                    return JsonResponse({'message': 'Transaction committed successfully.'}, status=200)
+                else:
+                    # If remove_product_quantity failed, rollback the transaction
+                    transaction.rollback()
+                    return remove_product_quantity_response
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
+    
+    
+    
+

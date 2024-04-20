@@ -9,6 +9,7 @@ import Cart from './Components/Cart';
 import AdminLogin from './Components/AdminLogin';
 import AdminHome from './Components/AdminHome';
 import {BrowserRouter,Routes, Route, useNavigate} from 'react-router-dom'
+import Payment from './Components/Payment';
 
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
     <Route path="/Profile" element={<Profile/>}/>
     <Route path="/AdminLogin" element={<AdminLogin/>}/>
     <Route path="/AdminHome" element={<AdminHome/>}/>
+    <Route path="/Payment" element={<Payment/>}/>
     </Routes>
     </BrowserRouter>
     

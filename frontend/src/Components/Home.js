@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaHeart, FaUser, FaShoppingCart, FaSearch } from 'react-icons/fa';
@@ -15,6 +14,7 @@ function Home() {
       try {
         const response = await axios.get('http://localhost:8000/api/products/');
         setProducts(response.data);
+        await updateCartQuantities(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
       }
@@ -23,38 +23,51 @@ function Home() {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    const fetchCartQuantities = async () => {
-      const userEmail = localStorage.getItem('user_email');
-      if (!userEmail) return;
+  const updateCartQuantities = async (productsData) => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) return;
 
-      const updatedCartItems = {};
-      for (const category in products) {
-        updatedCartItems[category] = {};
-        for (const product of products[category]) {
-          const quantity = await fetchCartItemQuantities(product.id, category);
-          updatedCartItems[category][product.id] = quantity;
+    const updatedCartItems = {};
+    for (const category in productsData) {
+      updatedCartItems[category] = {};
+      for (const product of productsData[category]) {
+        let quantity = await fetchCartItemQuantities(product.id, category);
+        const totalQuantity = await getTotalQuantity(product.id, category);
+        if (quantity > totalQuantity) {
+          quantity = totalQuantity;
+          await updateCartQuantity(userEmail, product.id, category, totalQuantity);
         }
+        updatedCartItems[category][product.id] = quantity;
       }
-      setCartItems(updatedCartItems);
-    };
+    }
+    setCartItems(updatedCartItems);
+  };
 
-    fetchCartQuantities();
-  }, [products]); // Run this effect when products change
-
-  const getTotalQuantity = async(productId,category) => {
-    try{
+  const getTotalQuantity = async (productId, category) => {
+    try {
       const response = await axios.post('http://localhost:8000/api/get_product_info', {
         product_id: productId,
         category: category,
       });
       return response.data.quantity;
-    }catch(error){
+    } catch (error) {
       console.error('Error fetching total quantity:', error);
       return 0;
     }
+  };
 
-  }
+  const updateCartQuantity = async (userEmail, productId, category, quantity) => {
+    try {
+      await axios.post('http://localhost:8000/api/update_cart_quantity/', {
+        user_email: userEmail,
+        product_id: productId,
+        category: category,
+        quantity: quantity,
+      });
+    } catch (error) {
+      console.error('Error updating cart quantity:', error);
+    }
+  };
 
   const fetchCartItemQuantities = async (productId, category) => {
     try {
@@ -98,36 +111,36 @@ function Home() {
     }
   };
 
-  
-const increaseQuantity = async (productId, category) => {
-  const userEmail = localStorage.getItem('user_email');
-  if (!userEmail) return;
+  const increaseQuantity = async (productId, category) => {
+    const userEmail = localStorage.getItem('user_email');
+    if (!userEmail) return;
 
-  try {
-    const currentQuantity = await fetchCartItemQuantities(productId, category);
-    const maxQuantity = await getTotalQuantity(productId, category);
+    try {
+      let currentQuantity = await fetchCartItemQuantities(productId, category);
+      const maxQuantity = await getTotalQuantity(productId, category);
 
-    if (currentQuantity === maxQuantity) {
-      alert('Max quantity of items Available reached.\nCannot add more to cart.');
-      return;
+      if (currentQuantity >= maxQuantity) {
+        alert('Max quantity of items available reached.\nQuantity updated to maximum available.');
+        await updateCartQuantity(userEmail, productId, category, maxQuantity);
+        currentQuantity = maxQuantity;
+      } else {
+        await axios.post('http://localhost:8000/api/add_to_cart/', {
+          user_email: userEmail,
+          category: category,
+          product_id: productId,
+          quantity: 1, // Increase quantity by 1
+        });
+        currentQuantity += 1;
+      }
+
+      setCartItems((prevItems) => ({
+        ...prevItems,
+        [category]: { ...prevItems[category], [productId]: currentQuantity },
+      }));
+    } catch (error) {
+      console.error('Error increasing quantity:', error);
     }
-
-    await axios.post('http://localhost:8000/api/add_to_cart/', {
-      user_email: userEmail,
-      category: category,
-      product_id: productId,
-      quantity: 1, // Increase quantity by 1
-    });
-    const quantity = await fetchCartItemQuantities(productId, category);
-    setCartItems((prevItems) => ({
-      ...prevItems,
-      [category]: { ...prevItems[category], [productId]: quantity },
-    }));
-  } catch (error) {
-    console.error('Error increasing quantity:', error);
-  }
-};
-
+  };
 
   const decreaseQuantity = async (productId, category) => {
     const userEmail = localStorage.getItem('user_email');
@@ -139,10 +152,10 @@ const increaseQuantity = async (productId, category) => {
         product_id: productId,
         category: category,
       });
-      const quantity = await fetchCartItemQuantities(productId, category);
+      let currentQuantity = await fetchCartItemQuantities(productId, category);
       setCartItems((prevItems) => ({
         ...prevItems,
-        [category]: { ...prevItems[category], [productId]: quantity },
+        [category]: { ...prevItems[category], [productId]: currentQuantity },
       }));
     } catch (error) {
       console.error('Error decreasing quantity:', error);
@@ -173,7 +186,6 @@ const increaseQuantity = async (productId, category) => {
             <div className="priceCart" style={{ display: 'flex', alignItems: 'flex-start' }}>
               <p>${product.price}</p>
               <div className="add-to-cart">
-                
                 {quantity && quantity > 0 ? (
                   <div className="quantity-controls">
                     <button onClick={() => decreaseQuantity(product.id, category)}>-</button>

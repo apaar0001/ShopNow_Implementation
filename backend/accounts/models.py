@@ -54,6 +54,14 @@ class Cart(models.Model):
     category = models.CharField(max_length=100)
     product_id = models.PositiveIntegerField()
     quantity = models.PositiveIntegerField()
+    
+    
+class Purchases(models.Model):
+    user_email = models.EmailField()
+    category = models.CharField(max_length=100)
+    product_id = models.PositiveIntegerField()
+    quantity = models.PositiveIntegerField()
+
 
 
 from django.db import models
