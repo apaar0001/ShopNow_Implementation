@@ -69,7 +69,9 @@ INSERT INTO accounts_decorations (url, name, price, what, quantity) VALUES
 ('https://2.bp.blogspot.com/-kKprFiTSe6g/UQfUeJtlWJI/AAAAAAAAAO8/ferEVCo7aao/s1600/DSC00032.JPG', 'Lamps', 99.00, 'lamp', 40),
 ('https://i5.walmartimages.com/asr/27261df2-b921-4d0e-9873-039a420ecc0e_1.5c2567a6ea883b6be0c42624cd9cfe69.jpeg', 'Lights', 29.00, 'light', 50);
 
-select * from accounts_clothing;
+select * from accounts_cart;
+
+
 select * from accounts_useraccount;
 drop table cart;
 CREATE TABLE accounts_cart (
@@ -145,4 +147,7 @@ BEGIN
 END//
 
 DELIMITER ;
-select * from accounts_decorations;
+select * from accounts_clothing;
+select * from accounts_cart;
+select * from accounts_useraccount;
+select * from accounts_purchases;
