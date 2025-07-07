@@ -246,26 +246,7 @@ If you encounter any issues or have questions:
 3. **Include steps to reproduce** the problem
 4. **Provide your environment details**
 
----
 
-## 📞 Contact
-
-- **Project Maintainer**: [Your Name](mailto:your.email@example.com)
-- **GitHub**: [@yourusername](https://github.com/yourusername)
-- **Project Link**: [https://github.com/yourusername/shopnow](https://github.com/yourusername/shopnow)
-
----
-
-## 🚧 Roadmap
-
-- [ ] Mobile application development
-- [ ] Advanced search and filtering
-- [ ] Wishlist functionality
-- [ ] Product recommendations
-- [ ] Multi-language support
-- [ ] Dark mode theme
-- [ ] Social media integration
-- [ ] Email notifications
 
 ---
 
